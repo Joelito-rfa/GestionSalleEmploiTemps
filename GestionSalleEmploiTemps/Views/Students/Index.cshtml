@@ -1,0 +1,84 @@
+@model IEnumerable<EMIT.Application.DTOs.StudentDto>
+@{ ViewData["Title"] = "Étudiants"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-person-group text-primary me-2"></i><span data-i18n="students.title">Étudiants</span></h1>
+        <p class="text-muted mb-0 small" data-i18n="students.subtitle">Gestion des étudiants</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i><span data-i18n="students.new">Nouvel étudiant</span></a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form method="get" class="mb-3">
+    <div class="row">
+        <div class="col-auto"><label class="col-form-label" data-i18n="students.filterLevel">Filtrer par niveau :</label></div>
+        <div class="col-auto">
+            <select name="level" asp-items="ViewBag.Levels" class="form-select" onchange="this.form.submit()">
+                <option value="" data-i18n="students.allLevels">Tous les niveaux</option>
+            </select>
+        </div>
+    </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Rechercher un étudiant..." data-i18n-placeholder="header.search" />
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped mb-0" id="dataTable">
+                <thead><tr><th data-i18n="students.matricule">Matricule</th><th data-i18n="students.fullName">Nom complet</th><th data-i18n="common.email">Email</th><th data-i18n="students.level">Niveau</th><th data-i18n="common.actions">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><code>@item.Matricule</code></td>
+                            <td>@item.FullName</td>
+                            <td>@item.Email</td>
+                            <td>@item.Level</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Modifier"><i class="bi bi-pencil"></i></a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Supprimer"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="noResults" class="text-center text-muted py-4 d-none">
+            <i class="bi bi-search" style="font-size: 2rem;"></i>
+            <p class="mt-2 mb-0" data-i18n="common.noResults">Aucun résultat trouvé</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#dataTable tbody tr');
+    var count = 0;
+    rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        var match = text.indexOf(query) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) count++;
+    });
+    document.getElementById('noResults').classList.toggle('d-none', count > 0);
+});
+</script>
+}

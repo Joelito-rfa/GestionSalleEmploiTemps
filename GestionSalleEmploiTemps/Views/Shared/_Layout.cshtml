@@ -1,0 +1,270 @@
+﻿@using EMIT.Infrastructure.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = User.Identity?.IsAuthenticated == true ? await UserManager.GetUserAsync(User) : null;
+}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ecole de Management et d'Innovation Technologique</title>
+    <link rel="icon" type="image/webp" href="~/favicon.webp" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GestionSalleEmploiTemps.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="bg-shapes">
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+        <div class="bg-shape"></div>
+    </div>
+
+    <div class="layout-wrapper">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-scroll">
+            <div class="sidebar-header">
+                <img src="~/images/emit-logo.webp" alt="EMIT" class="sidebar-logo" />
+                <h5>EMIT</h5>
+                <div class="sidebar-subtitle" data-i18n="header.system">Ecole de Management et d'Innovation Technologique</div>
+            </div>
+
+            @if (currentUser != null)
+            {
+                <a asp-controller="Profile" asp-action="Index" class="text-decoration-none">
+                    <div class="sidebar-user">
+                        @if (!string.IsNullOrEmpty(currentUser.ProfilePicturePath))
+                        {
+                            <img src="@currentUser.ProfilePicturePath" alt="PP" class="sidebar-user-avatar" />
+                        }
+                        else
+                        {
+                            <div class="sidebar-user-avatar-placeholder">
+                                @currentUser.FullName?.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-name">@currentUser.FullName</div>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <span class="sidebar-user-role role-admin">Admin</span>
+                            }
+                            else if (User.IsInRole("Teacher"))
+                            {
+                                <span class="sidebar-user-role role-teacher" data-i18n="nav.teacher">Enseignant</span>
+                            }
+                            else
+                            {
+                                <span class="sidebar-user-role role-student" data-i18n="nav.student">Etudiant</span>
+                            }
+                        </div>
+                    </div>
+                </a>
+            }
+
+            <div class="sidebar-nav">
+                @if (User.IsInRole("Admin") || User.IsInRole("Student"))
+                {
+                <div class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" asp-controller="Home" asp-action="Timetable">
+                        <i class="fa-regular fa-calendar"></i> <span data-i18n="nav.timetable">Emploi du temps</span>
+                    </a>
+                </div>
+                }
+
+                <div class="sidebar-nav-item">
+                    <a class="sidebar-nav-link" asp-controller="Notifications" asp-action="Index">
+                        <i class="fa-regular fa-bell"></i> <span>Notifications</span>
+                    </a>
+                </div>
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                {
+                    <div class="sidebar-collapse-header" data-target="admin-menu">
+                        <span data-i18n="nav.administration">Administration</span>
+                        <i class="fa-solid fa-chevron-down sidebar-collapse-icon"></i>
+                    </div>
+                    <div class="sidebar-collapse-menu" id="admin-menu">
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Dashboard" asp-action="Index">
+                                <i class="fa-solid fa-gauge-high"></i> <span data-i18n="nav.dashboard">Tableau de bord</span>
+                            </a>
+                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Schedules" asp-action="Index">
+                                <i class="fa-regular fa-clock"></i> <span data-i18n="nav.planning">Planification</span>
+                            </a>
+                        </div>
+                        }
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Attendance" asp-action="SelectSchedule">
+                                <i class="fa-regular fa-circle-check"></i> <span data-i18n="nav.attendance">Presences</span>
+                            </a>
+                        </div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Account" asp-action="ConnectedUsers">
+                                <i class="fa-solid fa-users"></i> <span data-i18n="nav.connected">Connectes</span>
+                            </a>
+                        </div>
+                        }
+                    </div>
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                    <div class="sidebar-collapse-header" data-target="resources-menu">
+                        <span data-i18n="nav.resources">Ressources</span>
+                        <i class="fa-solid fa-chevron-down sidebar-collapse-icon"></i>
+                    </div>
+                    <div class="sidebar-collapse-menu" id="resources-menu">
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Rooms" asp-action="Index">
+                                <i class="fa-solid fa-door-open"></i> <span data-i18n="nav.rooms">Salles</span>
+                            </a>
+                        </div>
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Teachers" asp-action="Index">
+                                <i class="fa-solid fa-chalkboard-user"></i> <span data-i18n="nav.teachers">Enseignants</span>
+                            </a>
+                        </div>
+                        <div class="sidebar-nav-item">
+                            <a class="sidebar-nav-link" asp-controller="Students" asp-action="Index">
+                                <i class="fa-solid fa-user-group"></i> <span data-i18n="nav.students">Etudiants</span>
+                            </a>
+                        </div>
+                    </div>
+                    }
+                }
+            </div>
+
+            <div class="sidebar-footer">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="sidebar-footer-link" asp-controller="Profile" asp-action="Index">
+                        <i class="fa-solid fa-user-circle"></i> <span data-i18n="nav.profile">Profil</span>
+                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="sidebar-footer-form">
+                        <button type="submit" class="sidebar-footer-link">
+                            <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="nav.logout">Deconnexion</span>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a class="sidebar-footer-link" asp-controller="Account" asp-action="Login">
+                        <i class="fa-solid fa-right-to-bracket"></i> <span data-i18n="nav.login">Connexion</span>
+                    </a>
+                    <a class="sidebar-footer-link" asp-controller="Account" asp-action="Register">
+                        <i class="fa-solid fa-user-plus"></i> <span data-i18n="nav.register">Inscription</span>
+                    </a>
+                }
+            </div>
+            </div>
+        </nav>
+        }
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+        <header class="header-bar">
+            <div class="header-left">
+                <button class="header-hamburger" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <a href="/" class="header-brand d-none d-md-flex">
+                    <img src="~/images/emit-logo.webp" alt="EMIT" />
+                    <span class="header-brand-text" data-i18n="header.system">Ecole de Management et d'Innovation Technologique</span>
+                </a>
+            </div>
+            <div class="header-right">
+                <!-- Global Search -->
+                <div class="global-search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="globalSearch" class="global-search-input" data-i18n-placeholder="header.search" placeholder="Rechercher..." autocomplete="off" />
+                    <div id="searchResults" class="search-results-dropdown"></div>
+                </div>
+
+                <!-- Notification Bell -->
+                @await Html.PartialAsync("_NotificationBell")
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggle" class="btn btn-sm theme-toggle-btn" data-i18n-title="header.darkMode" title="Mode sombre">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+                <!-- Language Switcher -->
+                <div class="dropdown">
+                    <button class="lang-toggle-btn dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown" data-i18n-title="header.language" title="Langue">
+                        <span class="fi fi-fr" id="currentLangFlag"></span>
+                        <span id="currentLangLabel">FR</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow language-dropdown">
+                        <li><a class="dropdown-item language-option" data-lang="fr" href="#"><span class="fi fi-fr me-2"></span>Francais</a></li>
+                        <li><a class="dropdown-item language-option" data-lang="mg" href="#"><span class="fi fi-mg me-2"></span>Malagasy</a></li>
+                        <li><a class="dropdown-item language-option" data-lang="en" href="#"><span class="fi fi-gb me-2"></span>English</a></li>
+                    </ul>
+                </div>
+
+                @if (currentUser != null)
+                {
+                    <div class="dropdown">
+                        <button class="header-user-btn dropdown-toggle" data-bs-toggle="dropdown">
+                            @if (!string.IsNullOrEmpty(currentUser.ProfilePicturePath))
+                            {
+                                <img src="@currentUser.ProfilePicturePath" alt="" class="header-user-avatar" />
+                            }
+                            else
+                            {
+                                <div class="header-user-avatar-placeholder bg-primary text-white rounded-circle">
+                                    @currentUser.FullName?.Substring(0, 1).ToUpper()
+                                </div>
+                            }
+                            <span class="d-none d-lg-inline small">@currentUser.FullName</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i><span data-i18n="nav.logout">Deconnexion</span></button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </header>
+        }
+
+        <!-- Main content -->
+        <div class="main-content @(User.Identity?.IsAuthenticated != true ? "no-sidebar" : "")">
+            <main class="flex-grow-1">
+                @RenderBody()
+            </main>
+
+            <footer class="border-top text-muted py-3 text-center small">
+                &copy; 2026 - EMIT - <span data-i18n="footer.rights">Tous droits reserves</span>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/i18n.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

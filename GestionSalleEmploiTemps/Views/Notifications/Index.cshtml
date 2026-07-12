@@ -1,0 +1,121 @@
+@model IEnumerable<EMIT.Application.DTOs.NotificationDto>
+@{ ViewData["Title"] = "Notifications"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="page-header"><div><h1 class="fw-bold mb-1"><i class="fa-regular fa-bell text-warning me-2"></i><span>Notifications</span></h1></div></div>
+    <div class="d-flex gap-2">
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <form asp-action="MarkAllAsRead" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-check-all me-1"></i>Tout marquer comme lu
+                </button>
+            </form>
+        }
+        @if (Model.Any())
+        {
+            <form asp-action="DeleteAll" method="post" class="d-inline"
+                  onsubmit="return confirm('Supprimer toutes les notifications ?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash me-1"></i>Tout supprimer
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="card shadow border-0">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center p-5 text-muted">
+                <i class="bi bi-bell-slash" style="font-size: 3rem;"></i>
+                <p class="mt-3 mb-0 fs-5">Aucune notification pour le moment.</p>
+            </div>
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var notif in Model)
+                {
+                    <div class="list-group-item list-group-item-action @(notif.IsRead ? "" : "list-group-item-light")">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex gap-3 flex-grow-1">
+                                <div class="mt-1">
+                                    @switch (notif.Type)
+                                    {
+                                        case "ScheduleCreated":
+                                            <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </div>
+                                            break;
+                                        case "ScheduleUpdated":
+                                            <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </div>
+                                            break;
+                                        case "ScheduleDeleted":
+                                            <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-trash"></i>
+                                            </div>
+                                            break;
+                                        default:
+                                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-info-circle"></i>
+                                            </div>
+                                            break;
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1 fw-bold @(notif.IsRead ? "" : "text-primary")">@notif.Title</h6>
+                                        @if (!notif.IsRead)
+                                        {
+                                            <span class="badge bg-primary rounded-pill">Nouveau</span>
+                                        }
+                                    </div>
+                                    <p class="mb-1 text-muted">@notif.Message</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>
+                                        @{
+                                            var timeSince = DateTime.UtcNow - notif.CreatedAt;
+                                            var timeText = timeSince.TotalMinutes < 1 ? "À l'instant"
+                                                : timeSince.TotalMinutes < 60 ? $"Il y a {timeSince.Minutes} min"
+                                                : timeSince.TotalHours < 24 ? $"Il y a {timeSince.Hours}h"
+                                                : notif.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+                                        }
+                                        @timeText
+                                        @if (!string.IsNullOrEmpty(notif.TargetLevel))
+                                        {
+                                            <span class="badge bg-secondary ms-2" style="font-size: 0.65rem;">@notif.TargetLevel</span>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column gap-1 ms-2">
+                                @if (!notif.IsRead)
+                                {
+                                    <form asp-action="MarkAsRead" asp-route-id="@notif.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-success py-0 px-1" title="Marquer comme lu">
+                                            <i class="bi bi-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                                <form asp-action="Delete" asp-route-id="@notif.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('Supprimer cette notification ?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Supprimer">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EMIT.Application/EMIT.Application.csproj" />
+  <Project Path="EMIT.Domain/EMIT.Domain.csproj" />
+  <Project Path="EMIT.Infrastructure/EMIT.Infrastructure.csproj" />
+  <Project Path="GestionSalleEmploiTemps/GestionSalleEmploiTemps.csproj" />
+</Solution>

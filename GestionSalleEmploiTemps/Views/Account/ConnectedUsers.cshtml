@@ -1,0 +1,99 @@
+@model IEnumerable<EMIT.Application.DTOs.ConnectedUserDto>
+@{ ViewData["Title"] = "Utilisateurs connectés"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="page-header"><div><h1 class="fw-bold mb-1"><i class="fa-solid fa-users text-success me-2"></i><span data-i18n="users.connected">Utilisateurs connectés</span></h1></div></div>
+    <span class="badge bg-success fs-6">@Model.Count() <span data-i18n="users.connectedCount">connecté(s)</span></span>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Any())
+        {
+            <div class="text-center p-4 text-muted">
+                <i class="bi bi-person-x" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0" data-i18n="users.noConnected">Aucun utilisateur connecté pour le moment.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row m-3 mb-0">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Rechercher un utilisateur..." data-i18n-placeholder="header.search" />
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th data-i18n="users.fullName">Nom complet</th>
+                            <th data-i18n="common.email">Email</th>
+                            <th data-i18n="common.role">Rôle</th>
+                            <th data-i18n="users.loginAt">Connecté le</th>
+                            <th data-i18n="users.lastActivity">Dernière activité</th>
+                            <th data-i18n="users.ipAddress">Adresse IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="fw-medium">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+                                             style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                            @user.FullName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        @user.FullName
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>
+                                    <span class="badge bg-@(user.Role == "Admin" ? "danger" : user.Role == "Teacher" ? "primary" : "success")">
+                                        @(user.Role == "Admin" ? "Administrateur" : user.Role == "Teacher" ? "Enseignant" : "Étudiant")
+                                    </span>
+                                </td>
+                                <td>@user.LoginAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @{
+                                        var timeSince = DateTime.UtcNow - user.LastActivityAt;
+                                        var activityText = timeSince.TotalMinutes < 1 ? "À l'instant"
+                                            : timeSince.TotalMinutes < 60 ? $"Il y a {timeSince.Minutes} min"
+                                            : timeSince.TotalHours < 24 ? $"Il y a {timeSince.Hours}h"
+                                            : $"Il y a {timeSince.Days} jour(s)";
+                                    }
+                                    <span class="text-muted small">@activityText</span>
+                                </td>
+                                <td><code>@(user.IpAddress ?? "N/A")</code></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div id="noResults" class="text-center text-muted py-4 d-none">
+                <i class="bi bi-search" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0" data-i18n="common.noResults">Aucun résultat trouvé</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#dataTable tbody tr');
+    var count = 0;
+    rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        var match = text.indexOf(query) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) count++;
+    });
+    document.getElementById('noResults').classList.toggle('d-none', count > 0);
+});
+</script>
+}

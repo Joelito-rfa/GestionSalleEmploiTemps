@@ -1,0 +1,257 @@
+@model IEnumerable<EMIT.Application.DTOs.ScheduleDto>
+@{ ViewData["Title"] = "Planification"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-clock text-primary me-2"></i><span data-i18n="schedules.title">Planification</span></h1>
+        <p class="text-muted mb-0 small" data-i18n="schedules.subtitle">Gestion des emplois du temps</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i><span data-i18n="schedules.new">Nouvelle séance</span>
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+                <label class="text-muted small fw-medium" data-i18n="schedules.filterLevel">Niveau :</label>
+                <select name="level" asp-items="ViewBag.Levels" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                    <option value="" data-i18n="schedules.allLevels">Tous les niveaux</option>
+                </select>
+            </div>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Rechercher..." data-i18n-placeholder="header.search" />
+                </div>
+                <a asp-controller="Attendance" asp-action="SelectSchedule" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-check-circle me-1"></i><span data-i18n="schedules.markAttendance">Marquer présences</span>
+                </a>
+                <a asp-controller="Home" asp-action="Timetable" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-calendar-week me-1"></i><span data-i18n="schedules.viewTimetable">Voir l'emploi du temps</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Weekly Grid View -->
+@{
+    var days = new[] {
+        (DayOfWeek.Monday, "Lundi"),
+        (DayOfWeek.Tuesday, "Mardi"),
+        (DayOfWeek.Wednesday, "Mercredi"),
+        (DayOfWeek.Thursday, "Jeudi"),
+        (DayOfWeek.Friday, "Vendredi")
+    };
+    var levels = new[] { "L1", "L2", "L3", "M1", "M2" };
+    var levelColors = new Dictionary<string, string> {
+        ["L1"] = "badge-l1", ["L2"] = "badge-l2", ["L3"] = "badge-l3",
+        ["M1"] = "badge-m1", ["M2"] = "badge-m2"
+    };
+    var schedules = Model.ToList();
+}
+
+<div class="card border-0 shadow-sm mb-4 hover-lift">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-grid me-2 text-primary"></i><span data-i18n="schedules.weeklyGrid">Vue hebdomadaire</span></h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0 schedule-grid">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;" class="bg-light"><span data-i18n="schedules.level">Niveau</span></th>
+                        @foreach (var (_, dayName) in days)
+                        {
+                            <th class="text-center bg-light">@dayName</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var level in levels)
+                    {
+                        <tr>
+                            <td class="align-middle fw-bold">
+                                <span class="badge @levelColors[level] fs-6">@level</span>
+                            </td>
+                            @foreach (var (dayOfWeek, _) in days)
+                            {
+                                var daySchedules = schedules
+                                    .Where(s => s.Day == dayOfWeek && s.Level.ToString() == level)
+                                    .OrderBy(s => s.StartTime)
+                                    .ToList();
+                                <td class="schedule-cell p-2">
+                                    @foreach (var s in daySchedules)
+                                    {
+                                        <div class="schedule-block mb-1 rounded p-2 @levelColors[level]-light">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <small class="fw-bold d-block">@s.StartTime.ToString(@"hh\:mm") - @s.EndTime.ToString(@"hh\:mm")</small>
+                                                    <small class="text-muted d-block"><i class="bi bi-door-open me-1"></i>@s.RoomName</small>
+                                                    <small class="text-muted d-block"><i class="bi bi-person me-1"></i>@s.TeacherName</small>
+                                                </div>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-link text-muted p-0 border-0" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                        <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@s.Id"><i class="bi bi-pencil me-2"></i>Modifier</a></li>
+                                                        <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@s.Id"><i class="bi bi-trash me-2"></i>Supprimer</a></li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (!daySchedules.Any())
+                                    {
+                                        <div class="text-center py-2">
+                                            <small class="text-muted">-</small>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Table View -->
+<div class="card border-0 shadow-sm hover-lift">
+    <div class="card-header bg-white border-0 py-3">
+        <h5 class="mb-0 fw-semibold"><i class="bi bi-list-ul me-2 text-success"></i><span data-i18n="schedules.detailedList">Liste détaillée</span></h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th class="ps-3" data-i18n="schedules.day">Jour</th>
+                        <th data-i18n="schedules.schedule">Horaire</th>
+                        <th data-i18n="schedules.level">Niveau</th>
+                        <th data-i18n="schedules.room">Salle</th>
+                        <th data-i18n="schedules.teacher">Enseignant</th>
+                        <th data-i18n="schedules.subject">Matière</th>
+                        <th class="text-end pe-3" data-i18n="common.actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var levelBadge = item.Level.ToString() switch
+                        {
+                            "L1" => "badge-l1", "L2" => "badge-l2", "L3" => "badge-l3",
+                            "M1" => "badge-m1", "M2" => "badge-m2", _ => "bg-secondary"
+                        };
+                        <tr>
+                            <td class="ps-3 fw-medium">@GetDayFrenchName(item.Day)</td>
+                            <td>
+                                <span class="time-badge-sm">@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</span>
+                            </td>
+                            <td><span class="badge @levelBadge">@item.Level</span></td>
+                            <td><i class="bi bi-door-open text-muted me-1"></i>@item.RoomName</td>
+                            <td>@item.TeacherName</td>
+                            <td><span class="subject-tag-sm">@item.Subject</span></td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <a asp-action="Mark" asp-controller="Attendance" asp-route-scheduleId="@item.Id" class="btn btn-outline-success" title="Présences">
+                                        <i class="bi bi-check-circle"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="noResults" class="text-center text-muted py-4 d-none">
+            <i class="bi bi-search" style="font-size: 2rem;"></i>
+            <p class="mt-2 mb-0" data-i18n="common.noResults">Aucun résultat trouvé</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .schedule-grid th, .schedule-grid td {
+        vertical-align: top;
+        border: 1px solid #e9ecef;
+    }
+    .schedule-grid thead th {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .schedule-cell {
+        min-width: 140px;
+        background: #fafbfc;
+    }
+    .schedule-block {
+        font-size: 0.78rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 3px solid;
+        border-radius: 8px;
+    }
+    .schedule-block:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .bg-primary-light { background: rgba(79, 123, 255, 0.08); border-left-color: #4F7BFF; }
+    .bg-success-light { background: rgba(16, 185, 129, 0.08); border-left-color: #10b981; }
+    .bg-purple-light { background: rgba(139, 92, 246, 0.08); border-left-color: #8b5cf6; }
+    .bg-orange-light { background: rgba(245, 158, 11, 0.08); border-left-color: #f59e0b; }
+    .bg-danger-light { background: rgba(239, 68, 68, 0.08); border-left-color: #ef4444; }
+    .badge-l1 { background: #4F7BFF; color: #fff; }
+    .badge-l2 { background: #10b981; color: #fff; }
+    .badge-l3 { background: #8b5cf6; color: #fff; }
+    .badge-m1 { background: #f59e0b; color: #fff; }
+    .badge-m2 { background: #ef4444; color: #fff; }
+</style>
+
+@section Scripts {
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#dataTable tbody tr');
+    var count = 0;
+    rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        var match = text.indexOf(query) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) count++;
+    });
+    document.getElementById('noResults').classList.toggle('d-none', count > 0);
+});
+</script>
+}
+
+@{
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

@@ -1,0 +1,223 @@
+@model IEnumerable<EMIT.Application.DTOs.ScheduleDto>
+@{
+    var teacher = (EMIT.Application.DTOs.TeacherDto)ViewBag.Teacher;
+    ViewData["Title"] = $"Emploi du temps - {teacher.FullName}";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="fa-regular fa-calendar text-primary me-2"></i>Emploi du temps</h1>
+        <p class="text-muted mb-0 small">
+            <i class="bi bi-person me-1"></i>@teacher.FullName &mdash; <span class="badge bg-primary-subtle text-primary">@teacher.Subject</span>
+        </p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Details" asp-route-id="@teacher.Id" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="tt-page">
+
+    <!-- HEADER BAR -->
+    <div class="tt-header">
+        <span class="tt-header__blob tt-header__blob--1"></span>
+        <span class="tt-header__blob tt-header__blob--2"></span>
+
+        <div class="tt-header__left">
+            <div class="tt-header__icon">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <div>
+                <h1 class="tt-header__title">Emploi du temps</h1>
+                <small class="tt-header__sub">
+                    <i class="fa-regular fa-clock me-1" style="font-size:.65rem;"></i>
+                    @Model.Count() séance(s) planifiée(s)
+                </small>
+            </div>
+        </div>
+
+        <div class="tt-header__right">
+            <div class="tt-search">
+                <i class="bi bi-search tt-search__icon"></i>
+                <input type="text" id="searchInput" class="tt-search__input"
+                       placeholder="Rechercher..." />
+            </div>
+        </div>
+    </div>
+
+    <!-- TIMETABLE CONTENT -->
+    <div id="timetable-content" class="tt-content">
+
+        @if (!Model.Any())
+        {
+            <div class="tt-empty">
+                <i class="bi bi-calendar-x"></i>
+                <p>Aucune séance planifiée pour cet enseignant.</p>
+            </div>
+        }
+        else
+        {
+            var levelColors = new Dictionary<string, string>
+            {
+                ["L1"] = "level-header-l1",
+                ["L2"] = "level-header-l2",
+                ["L3"] = "level-header-l3",
+                ["M1"] = "level-header-m1",
+                ["M2"] = "level-header-m2"
+            };
+            var levelBadge = new Dictionary<string, string>
+            {
+                ["L1"] = "tt-badge--l1",
+                ["L2"] = "tt-badge--l2",
+                ["L3"] = "tt-badge--l3",
+                ["M1"] = "tt-badge--m1",
+                ["M2"] = "tt-badge--m2"
+            };
+
+            var groupedByLevel = Model.GroupBy(s => s.Level)
+                .OrderBy(g => g.Key);
+
+            @foreach (var levelGroup in groupedByLevel)
+            {
+                var colorClass = levelColors.GetValueOrDefault(levelGroup.Key.ToString(), "level-header-l1");
+                var badgeClass = levelBadge.GetValueOrDefault(levelGroup.Key.ToString(), "tt-badge--l1");
+
+                <div class="tt-card timetable-card">
+                    <div class="tt-card__head @colorClass">
+                        <span class="tt-badge-level @badgeClass">@levelGroup.Key</span>
+                        <h4 class="tt-card__title">Niveau @levelGroup.Key</h4>
+                    </div>
+
+                    <div class="tt-card__body">
+                        <div class="table-responsive">
+                            <table class="table timetable mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Jour</th>
+                                        <th>Horaire</th>
+                                        <th>Salle</th>
+                                        <th>Matière</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ var prevDay = DayOfWeek.Sunday; }
+                                    @foreach (var dayGroup in levelGroup.GroupBy(s => s.Day).OrderBy(g => g.Key))
+                                    {
+                                        var first = true;
+                                        var dayIndex = (int)dayGroup.Key;
+                                        foreach (var schedule in dayGroup.OrderBy(s => s.StartTime))
+                                        {
+                                            <tr class="timetable-row @(first && dayIndex != (int)prevDay ? "day-separator" : "")">
+                                                @if (first)
+                                                {
+                                                    <td rowspan="@dayGroup.Count()" class="align-middle day-cell">
+                                                        <span class="day-name">@GetDayFrenchName(dayGroup.Key)</span>
+                                                    </td>
+                                                    first = false;
+                                                }
+                                                <td class="time-cell">
+                                                    <span class="time-badge">@schedule.StartTime.ToString(@"hh\:mm")</span>
+                                                    <span class="time-sep">&rarr;</span>
+                                                    <span class="time-badge">@schedule.EndTime.ToString(@"hh\:mm")</span>
+                                                </td>
+                                                <td class="td-detail"><i class="bi bi-door-open"></i> @schedule.RoomName</td>
+                                                <td><span class="subject-tag">@schedule.Subject</span></td>
+                                            </tr>
+                                        }
+                                        prevDay = dayGroup.Key;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+.tt-page{display:flex;flex-direction:column;gap:28px;animation:tt-fadeIn .5s ease both}
+@@keyframes tt-fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.tt-header{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:22px 28px;background:linear-gradient(135deg,#ffffff 0%,#f8faff 100%);border:1px solid rgba(229,231,235,.6);border-radius:var(--card-radius,20px);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.tt-header__left{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+.tt-header__icon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--color-primary,#4F7BFF),var(--color-secondary,#6C63FF));color:#fff;font-size:1.05rem;box-shadow:0 4px 14px rgba(79,123,255,.25)}
+.tt-header__title{font-size:1.35rem;font-weight:700;color:#111827;margin:0;letter-spacing:-.02em;line-height:1.25}
+.tt-header__sub{font-size:.72rem;color:#9ca3af;display:flex;align-items:center;gap:3px;margin-top:2px}
+.tt-header__blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.45;pointer-events:none}
+.tt-header__blob--1{width:180px;height:180px;top:-70px;right:-30px;background:radial-gradient(circle,rgba(79,123,255,.3),transparent 70%)}
+.tt-header__blob--2{width:120px;height:120px;bottom:-50px;left:20%;background:radial-gradient(circle,rgba(108,99,255,.2),transparent 70%)}
+.tt-header__right{display:flex;align-items:center;gap:8px;position:relative;z-index:1;flex-wrap:wrap}
+.tt-search{position:relative;display:flex;align-items:center}
+.tt-search__icon{position:absolute;left:11px;font-size:.8rem;color:#9ca3af;pointer-events:none}
+.tt-search__input{width:180px;height:34px;padding:0 12px 0 32px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;font-size:.78rem;color:#374151;transition:all .25s ease}
+.tt-search__input::placeholder{color:#c0c4cc}
+.tt-search__input:focus{outline:none;width:220px;border-color:var(--color-primary,#4F7BFF);box-shadow:0 0 0 3px rgba(79,123,255,.1)}
+.tt-card{background:#fff;border:1px solid rgba(229,231,235,.5);border-radius:var(--card-radius,20px);box-shadow:0 2px 16px rgba(0,0,0,.04);overflow:hidden;transition:all .35s cubic-bezier(.4,0,.2,1);animation:tt-cardIn .5s ease both}
+.tt-card:nth-child(2){animation-delay:.06s}
+.tt-card:nth-child(3){animation-delay:.12s}
+@@keyframes tt-cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.tt-card:hover{box-shadow:0 8px 32px rgba(79,123,255,.08);transform:translateY(-3px)}
+.tt-card__head{display:flex;align-items:center;gap:12px;padding:14px 22px}
+.tt-card__title{margin:0;font-size:.88rem;font-weight:600;color:#fff}
+.tt-card__body{padding:0}
+.tt-badge-level{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(4px)}
+.tt-badge--l1{background:rgba(219,234,254,.25);color:#fff}
+.tt-badge--l2{background:rgba(207,250,254,.25);color:#fff}
+.tt-badge--l3{background:rgba(204,251,241,.25);color:#fff}
+.tt-badge--m1{background:rgba(255,237,213,.25);color:#fff}
+.tt-badge--m2{background:rgba(255,228,230,.25);color:#fff}
+.timetable{border-collapse:separate;border-spacing:0}
+.timetable th,.timetable td{vertical-align:middle;padding:.6rem 1rem !important}
+.timetable th{border:none !important}
+.timetable td{border:none !important}
+.timetable tbody tr{box-shadow:none !important;border-radius:0 !important;transition:all .25s cubic-bezier(.4,0,.2,1)}
+.timetable tbody tr:last-child td{border-bottom:none !important}
+.timetable tbody tr:hover{background:linear-gradient(90deg,rgba(79,123,255,.03),rgba(108,99,255,.02),transparent);box-shadow:none !important}
+.timetable tbody tr:hover .day-cell{background:linear-gradient(135deg,#eef2ff,#e8ecff)}
+.timetable thead th{background:#f9fafb;border-bottom:1px solid #f1f5f9 !important;font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;position:sticky;top:0;z-index:2}
+.timetable-row.day-separator td:not(.day-cell){border-top:1.5px solid #e5e7eb !important}
+.timetable-row.day-separator td.day-cell{border:none !important}
+.day-cell{padding:.6rem .8rem !important;background:linear-gradient(135deg,#f8fafc,#f1f5f9);text-align:center;width:100px;border:none !important;border-radius:10px 0 0 10px;transition:background .3s ease;vertical-align:middle !important}
+.day-name{font-size:.78rem;font-weight:700;color:#475569;letter-spacing:.01em}
+.time-cell{white-space:nowrap;display:flex;align-items:center;gap:5px}
+.time-badge{display:inline-block;background:linear-gradient(135deg,#eef2ff,#e0e7ff);color:#4338ca;padding:3px 9px;border-radius:7px;font-size:.73rem;font-weight:600;box-shadow:0 1px 3px rgba(67,56,202,.08);transition:all .25s ease}
+.time-badge:hover{transform:scale(1.04);box-shadow:0 2px 8px rgba(67,56,202,.14)}
+.time-sep{color:#d1d5db;font-size:.7rem;font-weight:500}
+.td-detail{font-size:.82rem;color:#4b5563}
+.td-detail i{color:#c0c4cc;margin-right:4px;font-size:.8rem}
+.subject-tag{display:inline-block;background:linear-gradient(135deg,#dbeafe,#ede9fe);color:#1e40af;padding:4px 14px;border-radius:999px;font-size:.73rem;font-weight:600;white-space:nowrap;box-shadow:0 1px 4px rgba(30,64,175,.08);transition:all .3s cubic-bezier(.4,0,.2,1)}
+.subject-tag:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 4px 12px rgba(30,64,175,.16)}
+.level-header-l1{background:linear-gradient(135deg,#4F7BFF,#6366F1) !important}
+.level-header-l2{background:linear-gradient(135deg,#10B981,#06B6D4) !important}
+.level-header-l3{background:linear-gradient(135deg,#8B5CF6,#A855F7) !important}
+.level-header-m1{background:linear-gradient(135deg,#F59E0B,#F97316) !important}
+.level-header-m2{background:linear-gradient(135deg,#EF4444,#EC4899) !important}
+.tt-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:48px 24px;color:#9ca3af}
+.tt-empty i{font-size:2.4rem;opacity:.4}
+.tt-empty p{margin:0;font-size:.9rem}
+</style>
+
+@section Scripts {
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    var query = this.value.toLowerCase();
+    var rows = document.querySelectorAll('.timetable-row, .timetable-card');
+    rows.forEach(function(el) {
+        var text = el.textContent.toLowerCase();
+        el.style.display = text.indexOf(query) !== -1 ? '' : 'none';
+    });
+});
+</script>
+}
+
+@functions {
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

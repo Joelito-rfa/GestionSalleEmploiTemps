@@ -1,0 +1,44 @@
+@model EMIT.Application.DTOs.ScheduleDto
+@{ ViewData["Title"] = "Supprimer séance"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-trash text-danger me-2"></i>Supprimer séance</h1>
+        <p class="text-muted mb-0 small">Confirmer la suppression de cette séance</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <div class="alert alert-warning border-0 mb-4">
+            <i class="bi bi-exclamation-triangle me-2"></i><strong>Êtes-vous sûr ?</strong> Cette action est irréversible.
+        </div>
+        <dl class="row mb-0">
+            <dt class="col-sm-2">Jour</dt><dd class="col-sm-10">@GetDayFrenchName(Model.Day)</dd>
+            <dt class="col-sm-2">Horaire</dt><dd class="col-sm-10">@Model.StartTime.ToString(@"hh\:mm") - @Model.EndTime.ToString(@"hh\:mm")</dd>
+            <dt class="col-sm-2">Niveau</dt><dd class="col-sm-10">@Model.Level</dd>
+            <dt class="col-sm-2">Salle</dt><dd class="col-sm-10">@Model.RoomName</dd>
+            <dt class="col-sm-2">Enseignant</dt><dd class="col-sm-10">@Model.TeacherName</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" class="mt-3">
+    <input type="hidden" asp-for="Id" />
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Retour</a>
+    </div>
+</form>
+
+@{
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

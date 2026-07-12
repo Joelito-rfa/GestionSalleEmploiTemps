@@ -1,0 +1,62 @@
+@model EMIT.Application.DTOs.ProfileDto
+@{ ViewData["Title"] = "Mon profil"; }
+
+<div class="page-header"><div><h1 class="fw-bold mb-1"><i class="fa-regular fa-user text-primary me-2"></i><span>Mon profil</span></h1></div></div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow border-0">
+            <div class="card-body p-5 text-center">
+                <div class="position-relative d-inline-block mb-3">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                    {
+                        <img src="@Model.ProfilePicturePath" alt="Photo de profil"
+                             class="rounded-circle border border-3 border-primary"
+                             style="width: 120px; height: 120px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto"
+                             style="width: 120px; height: 120px; font-size: 2.5rem; font-weight: bold;">
+                            @Model.FullName.Substring(0, 1).ToUpper()
+                        </div>
+                    }
+                </div>
+
+                <h3 class="fw-bold">@Model.FullName</h3>
+                <span class="badge bg-@(Model.Role == "Admin" ? "danger" : Model.Role == "Teacher" ? "primary" : "success") fs-6 px-3 py-2 mb-3">
+                    @(Model.Role == "Admin" ? "Administrateur" : Model.Role == "Teacher" ? "Enseignant" : "Étudiant")
+                </span>
+
+                <ul class="list-group list-group-flush text-start mt-4">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-envelope me-2"></i>Email</span>
+                        <span>@Model.Email</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-calendar me-2"></i>Membre depuis</span>
+                        <span>@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-clock me-2"></i>Séances programmées</span>
+                        <span class="badge bg-info rounded-pill">@Model.TotalSchedules</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="bi bi-check-circle me-2"></i>Présences enregistrées</span>
+                        <span class="badge bg-success rounded-pill">@Model.TotalAttendances</span>
+                    </li>
+                </ul>
+
+                <a asp-action="Edit" class="btn btn-primary w-100 mt-3">
+                    <i class="bi bi-pencil-square me-1"></i> Modifier le profil
+                </a>
+                <a asp-action="ChangePassword" class="btn btn-outline-secondary w-100 mt-2">
+                    <i class="bi bi-key me-1"></i> Changer le mot de passe
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+    </div>
+</div>

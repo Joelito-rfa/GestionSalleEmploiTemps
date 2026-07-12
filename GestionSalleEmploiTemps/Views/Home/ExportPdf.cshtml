@@ -1,0 +1,200 @@
+@model IEnumerable<EMIT.Application.DTOs.ScheduleDto>
+@{
+    ViewData["Title"] = "Export PDF - Emploi du temps";
+    var level = Context.Request.Query["level"].FirstOrDefault();
+    var title = string.IsNullOrEmpty(level) ? "Tous les niveaux" : $"Niveau {level}";
+    var levels = Model.GroupBy(s => s.Level).OrderBy(g => g.Key).ToList();
+    var isSingleLevel = levels.Count == 1;
+}
+
+<div class="mb-3 d-flex justify-content-between align-items-center no-print">
+    <div>
+        <a asp-action="Timetable" asp-route-level="@level" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Retour à l'emploi du temps
+        </a>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <form method="get" class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 small">Niveau :</label>
+            <select name="level" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Tous les niveaux</option>
+                @foreach (var l in new[] { "L1", "L2", "L3", "M1", "M2" })
+                {
+                    <option value="@l" selected="@(level == l)">@l</option>
+                }
+            </select>
+        </form>
+        <button onclick="window.print()" class="btn btn-danger btn-sm">
+            <i class="bi bi-printer me-1"></i> Imprimer / PDF
+        </button>
+    </div>
+</div>
+
+<div id="pdf-content">
+    @if (!Model.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="text-center">
+                    <img src="~/images/emit-logo.webp" alt="EMIT" style="height: 60px; margin-bottom: 10px;" />
+                    <h2 class="fw-bold" style="color: #1a73e8;">Emploi du temps - @title</h2>
+                    <p class="text-muted small">EMIT - Généré le @DateTime.Now.ToString("dd/MM/yyyy à HH:mm")</p>
+                </div>
+                <div class="alert alert-info">Aucune séance trouvée pour @title.ToLower().</div>
+            </div>
+        </div>
+    }
+
+    @for (var i = 0; i < levels.Count; i++)
+    {
+        var levelGroup = levels[i];
+        var isLast = i == levels.Count - 1;
+        var levelColors = new Dictionary<string, string> {
+            ["L1"] = "#2563eb", ["L2"] = "#10b981", ["L3"] = "#7c3aed",
+            ["M1"] = "#f59e0b", ["M2"] = "#ef4444"
+        };
+        var color = levelColors.GetValueOrDefault(levelGroup.Key.ToString(), "#1a73e8");
+
+        <div class="level-page @(isLast ? "" : "page-break")">
+            <div class="page-header text-center mb-4">
+                <img src="~/images/emit-logo.webp" alt="EMIT" style="height: 60px; margin-bottom: 10px;" />
+                <h2 class="fw-bold" style="color: @color; border-bottom: 3px solid @color; display: inline-block; padding-bottom: 4px;">
+                    Emploi du temps - Niveau @levelGroup.Key
+                </h2>
+                <p class="text-muted small mt-2">
+                    EMIT - Généré le @DateTime.Now.ToString("dd/MM/yyyy à HH:mm")
+                </p>
+            </div>
+
+            <table class="table table-bordered print-table" style="border-collapse: collapse; width: 100%;">
+                <thead>
+                    <tr style="background: @color; color: white;">
+                        <th style="padding: 10px; text-align: left; width: 120px;">Jour</th>
+                        <th style="padding: 10px; text-align: left; width: 150px;">Horaire</th>
+                        <th style="padding: 10px; text-align: left;">Salle</th>
+                        <th style="padding: 10px; text-align: left;">Enseignant</th>
+                        <th style="padding: 10px; text-align: left;">Matière</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dayGroup in levelGroup.GroupBy(s => s.Day).OrderBy(d => d.Key))
+                    {
+                        var first = true;
+                        foreach (var s in dayGroup.OrderBy(x => x.StartTime))
+                        {
+                            <tr style="border-bottom: 1px solid #e2e8f0;">
+                                @if (first)
+                                {
+                                    <td style="padding: 10px; font-weight: 600; background: #f8fafc;" rowspan="@dayGroup.Count()">
+                                        @GetDayFrenchName(dayGroup.Key)
+                                    </td>
+                                    first = false;
+                                }
+                                <td style="padding: 10px; white-space: nowrap;">
+                                    <span style="background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">
+                                        @s.StartTime.ToString(@"hh\:mm") - @s.EndTime.ToString(@"hh\:mm")
+                                    </span>
+                                </td>
+                                <td style="padding: 10px;">@s.RoomName</td>
+                                <td style="padding: 10px;">@s.TeacherName</td>
+                                <td style="padding: 10px;">
+                                    <span style="background: linear-gradient(135deg, #dbeafe, #ede9fe); color: #1e40af; padding: 2px 10px; border-radius: 12px; font-size: 0.85rem;">
+                                        @s.Subject
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="page-footer text-center mt-4 text-muted small">
+                <p class="mb-0">Niveau @levelGroup.Key - @levelGroup.Count() séance(s)</p>
+                <p class="mb-0">EMIT - Système de Gestion des Salles et Emploi du Temps</p>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    @@media print {
+        @@page {
+            margin: 8mm;
+            size: landscape;
+        }
+
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .no-print { display: none !important; }
+
+        .page-break {
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .level-page {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .print-table {
+            border-collapse: collapse !important;
+        }
+
+        .print-table th {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .print-table td {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .page-header h2 {
+            font-size: 16pt !important;
+        }
+
+        .page-header p {
+            font-size: 8pt !important;
+        }
+
+        .print-table th {
+            font-size: 8pt !important;
+            padding: 5px 8px !important;
+        }
+
+        .print-table td {
+            font-size: 9pt !important;
+            padding: 4px 8px !important;
+        }
+
+        .page-footer p {
+            font-size: 7pt !important;
+        }
+    }
+
+    .level-page {
+        margin-bottom: 2rem;
+    }
+
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #cbd5e1; padding: 10px; }
+    th { color: white; }
+    tr:nth-child(even) { background: #f8fafc; }
+</style>
+
+@{
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

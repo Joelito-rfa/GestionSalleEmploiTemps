@@ -1,0 +1,179 @@
+@model EMIT.Application.DTOs.RegisterDto
+@{ Layout = "_LayoutLogin"; ViewData["Title"] = "Inscription"; }
+
+<div class="auth-page gradient-violet">
+    <!-- Decorative floating shapes -->
+    <div class="auth-shapes">
+        <div class="auth-shape"></div>
+        <div class="auth-shape"></div>
+        <div class="auth-shape"></div>
+    </div>
+
+    <!-- Register Card -->
+    <div class="auth-card wide">
+        <div class="auth-card-header">
+            <img src="~/images/emit-logo.webp" alt="EMIT" class="auth-logo" />
+            <h2 class="auth-card-title" data-i18n="auth.createAccount">Créer un compte</h2>
+            <p class="auth-card-subtitle" data-i18n="auth.registerSubtitle">Rejoignez la plateforme EMIT</p>
+        </div>
+
+        <div class="auth-card-body">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <!-- Role -->
+                <div class="auth-input-group">
+                    <label asp-for="Role" class="auth-label" data-i18n="auth.role">Rôle</label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-user-tag input-icon"></i>
+                        <select asp-for="Role" class="form-select" id="roleSelect">
+                            <option value="Teacher">Enseignant</option>
+                            <option value="Student">Étudiant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Identifier -->
+                <div class="auth-input-group">
+                    <label asp-for="Identifier" class="auth-label" id="identifierLabel">Numéro enseignant</label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-id-card input-icon"></i>
+                        <input asp-for="Identifier" class="form-control" id="identifierInput" placeholder="PROF-2026-001" data-i18n-placeholder="auth.identifierPlaceholder" />
+                    </div>
+                    <span asp-validation-for="Identifier" class="text-danger"></span>
+                    <small class="text-muted" style="font-size: 0.75rem;" data-i18n="auth.identifierHint">Entrez le numéro qui vous a été attribué par l'administration.</small>
+                </div>
+
+                <!-- First & Last Name -->
+                <div class="row">
+                    <div class="col-md-6 auth-input-group">
+                        <label asp-for="FirstName" class="auth-label"></label>
+                        <div style="position: relative;">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input asp-for="FirstName" class="form-control" placeholder="Jean" data-i18n-placeholder="auth.firstNamePlaceholder" />
+                        </div>
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 auth-input-group">
+                        <label asp-for="LastName" class="auth-label"></label>
+                        <div style="position: relative;">
+                            <i class="fa-solid fa-user input-icon"></i>
+                            <input asp-for="LastName" class="form-control" placeholder="Dupont" data-i18n-placeholder="auth.lastNamePlaceholder" />
+                        </div>
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="auth-input-group">
+                    <label asp-for="Email" class="auth-label"></label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input asp-for="Email" class="form-control" type="email" placeholder="email@example.com" data-i18n-placeholder="auth.emailPlaceholder" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="auth-input-group">
+                    <label asp-for="Password" class="auth-label"></label>
+                    <div class="password-wrapper" style="position: relative;">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input asp-for="Password" class="form-control" id="regPassword" placeholder="Mot de passe" data-i18n-placeholder="auth.passwordPlaceholder" />
+                        <button type="button" class="password-toggle" onclick="togglePassword('regPassword', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strengthBar"></div>
+                    </div>
+                    <span class="password-strength-text" id="strengthText"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="auth-input-group">
+                    <label asp-for="ConfirmPassword" class="auth-label"></label>
+                    <div class="password-wrapper" style="position: relative;">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input asp-for="ConfirmPassword" class="form-control" id="regConfirmPassword" placeholder="Confirmer le mot de passe" data-i18n-placeholder="auth.confirmPasswordPlaceholder" />
+                        <button type="button" class="password-toggle" onclick="togglePassword('regConfirmPassword', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    <span><i class="fa-solid fa-user-plus me-2"></i><span data-i18n="auth.register">S'inscrire</span></span>
+                </button>
+
+                <div class="auth-footer-link">
+                    <span data-i18n="auth.hasAccount">Déjà un compte ?</span>
+                    <a asp-action="Login" class="auth-link fw-semibold" data-i18n="auth.login">Se connecter</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="auth-footer">
+        &copy; 2026 - EMIT - <span data-i18n="footer.rights">Tous droits réservés</span>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+}
+
+document.getElementById('roleSelect').addEventListener('change', function () {
+    var isTeacher = this.value === 'Teacher';
+    document.getElementById('identifierLabel').textContent = isTeacher ? 'Numéro enseignant' : 'Matricule étudiant';
+    document.getElementById('identifierInput').placeholder = isTeacher ? 'PROF-2026-001' : 'STU-2026-001';
+});
+
+// Password strength meter
+var regPassword = document.getElementById('regPassword');
+if (regPassword) {
+    regPassword.addEventListener('input', function() {
+        var val = this.value;
+        var bar = document.getElementById('strengthBar');
+        var text = document.getElementById('strengthText');
+        var score = 0;
+
+        if (val.length >= 6) score++;
+        if (val.length >= 10) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        bar.className = 'password-strength-bar';
+        if (val.length === 0) {
+            text.textContent = '';
+            text.style.color = '';
+        } else if (score <= 2) {
+            bar.classList.add('strength-weak');
+            text.textContent = 'Faible';
+            text.style.color = '#ef4444';
+        } else if (score <= 3) {
+            bar.classList.add('strength-medium');
+            text.textContent = 'Moyen';
+            text.style.color = '#f59e0b';
+        } else {
+            bar.classList.add('strength-strong');
+            text.textContent = 'Fort';
+            text.style.color = '#22c55e';
+        }
+    });
+}
+</script>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

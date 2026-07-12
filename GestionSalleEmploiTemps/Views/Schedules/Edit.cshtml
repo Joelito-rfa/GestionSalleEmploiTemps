@@ -1,0 +1,93 @@
+@model EMIT.Application.DTOs.UpdateScheduleDto
+@{ ViewData["Title"] = "Modifier séance"; }
+
+<div class="page-header">
+    <div>
+        <h1 class="fw-bold mb-1"><i class="bi bi-pencil-square text-warning me-2"></i>Modifier séance</h1>
+        <p class="text-muted mb-0 small">Modifier les détails de cette séance</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Level" class="form-label fw-semibold">Niveau</label>
+                            <select asp-for="Level" asp-items="ViewBag.Levels" class="form-select"></select>
+                            <span asp-validation-for="Level" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Day" class="form-label fw-semibold">Jour</label>
+                            <select asp-for="Day" asp-items="ViewBag.Days" class="form-select"></select>
+                            <span asp-validation-for="Day" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="StartTime" class="form-label fw-semibold">Heure de début</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-clock"></i></span>
+                                <input asp-for="StartTime" class="form-control" type="time" />
+                            </div>
+                            <span asp-validation-for="StartTime" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="EndTime" class="form-label fw-semibold">Heure de fin</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-clock-fill"></i></span>
+                                <input asp-for="EndTime" class="form-control" type="time" />
+                            </div>
+                            <span asp-validation-for="EndTime" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="RoomId" class="form-label fw-semibold">Salle</label>
+                            <select asp-for="RoomId" asp-items="ViewBag.RoomId" class="form-select"></select>
+                            <span asp-validation-for="RoomId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TeacherId" class="form-label fw-semibold">Enseignant</label>
+                            <select asp-for="TeacherId" asp-items="ViewBag.TeacherId" class="form-select"></select>
+                            <span asp-validation-for="TeacherId" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-2">
+                        <button type="submit" class="btn btn-warning px-4">
+                            <i class="bi bi-check-lg me-1"></i>Enregistrer
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm bg-light border-0">
+            <div class="card-body">
+                <h6 class="fw-semibold mb-3"><i class="bi bi-info-circle me-2 text-warning"></i>Modifier une séance</h6>
+                <ul class="list-unstyled small text-muted">
+                    <li class="mb-2"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Les modifications sont visibles immédiatement</li>
+                    <li class="mb-2"><i class="bi bi-check2 text-success me-2"></i>Les conflits seront vérifiés</li>
+                    <li><i class="bi bi-info-circle text-info me-2"></i>L'emploi du temps se met à jour en temps réel</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

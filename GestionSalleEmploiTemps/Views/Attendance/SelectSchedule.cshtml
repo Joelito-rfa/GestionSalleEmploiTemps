@@ -1,0 +1,45 @@
+@model IEnumerable<EMIT.Application.DTOs.ScheduleDto>
+@{ ViewData["Title"] = "Sélectionner une séance"; }
+
+<div class="page-header"><div><h1 class="fw-bold mb-1"><i class="fa-regular fa-calendar-check text-primary me-2"></i><span>Sélectionner une séance</span></h1></div></div>
+
+<form method="get" class="mb-3">
+    <div class="row">
+        <div class="col-auto"><label class="col-form-label">Filtrer par niveau :</label></div>
+        <div class="col-auto">
+            <select name="level" asp-items="ViewBag.Levels" class="form-select" onchange="this.form.submit()">
+                <option value="">Tous les niveaux</option>
+            </select>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow">
+    <div class="card-body">
+        <table class="table table-striped mb-0">
+            <thead><tr><th>Jour</th><th>Horaire</th><th>Niveau</th><th>Salle</th><th>Enseignant</th><th>Actions</th></tr></thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@GetDayFrenchName(item.Day)</td>
+                        <td>@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</td>
+                        <td>@item.Level</td>
+                        <td>@item.RoomName</td>
+                        <td>@item.TeacherName</td>
+                        <td><a asp-action="Mark" asp-route-scheduleId="@item.Id" class="btn btn-sm btn-success">Marquer présences</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@{
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

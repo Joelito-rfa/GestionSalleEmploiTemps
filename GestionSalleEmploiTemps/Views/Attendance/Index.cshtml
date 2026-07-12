@@ -1,0 +1,98 @@
+@model IEnumerable<EMIT.Application.DTOs.AttendanceDto>
+@{
+    ViewData["Title"] = "Présences";
+    var schedule = ViewBag.Schedule as EMIT.Application.DTOs.ScheduleDto;
+}
+
+<div class="page-header"><div><h1 class="fw-bold mb-1"><i class="bi bi-check-circle text-success me-2"></i><span data-i18n="attendance.title">Presences</span></h1></div></div>
+
+@if (schedule != null)
+{
+    <p class="lead">
+        <strong>@schedule.Level</strong> - @GetDayFrenchName(schedule.Day) @schedule.StartTime.ToString(@"hh\:mm")-@schedule.EndTime.ToString(@"hh\:mm")
+        | Salle: @schedule.RoomName | Enseignant: @schedule.TeacherName
+    </p>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"] <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Rechercher un étudiant..." data-i18n-placeholder="header.search" />
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped mb-0" id="dataTable">
+                    <thead><tr><th data-i18n="attendance.student">Étudiant</th><th data-i18n="attendance.present">Présent</th><th data-i18n="attendance.date">Date</th><th data-i18n="attendance.notes">Notes</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="@(item.IsPresent ? "" : "table-danger")">
+                                <td>@item.StudentName</td>
+                                <td>@(item.IsPresent ? "Oui" : "Non")</td>
+                                <td>@item.Date.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@item.Notes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div id="noResults" class="text-center text-muted py-4 d-none">
+                <i class="bi bi-search" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0" data-i18n="common.noResults">Aucun résultat trouvé</p>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4">
+                <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mb-0 mt-2" data-i18n="attendance.noRecords">Aucune présence enregistrée pour cette séance.</p>
+            </div>
+        }
+    </div>
+</div>
+<div class="mt-3">
+    <a asp-action="SelectSchedule" class="btn btn-secondary" data-i18n="common.back">Retour</a>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    var searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    searchInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase();
+        var rows = document.querySelectorAll('#dataTable tbody tr');
+        var count = 0;
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            var match = text.indexOf(query) !== -1;
+            row.style.display = match ? '' : 'none';
+            if (match) count++;
+        });
+        document.getElementById('noResults').classList.toggle('d-none', count > 0);
+    });
+})();
+</script>
+}
+
+@{
+    string GetDayFrenchName(DayOfWeek day) => day switch
+    {
+        DayOfWeek.Monday => "Lundi", DayOfWeek.Tuesday => "Mardi", DayOfWeek.Wednesday => "Mercredi",
+        DayOfWeek.Thursday => "Jeudi", DayOfWeek.Friday => "Vendredi", DayOfWeek.Saturday => "Samedi",
+        DayOfWeek.Sunday => "Dimanche", _ => day.ToString()
+    };
+}

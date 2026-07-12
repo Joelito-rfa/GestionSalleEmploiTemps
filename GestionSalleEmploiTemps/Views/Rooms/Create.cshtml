@@ -1,0 +1,16 @@
+@model EMIT.Application.DTOs.CreateRoomDto
+@{ ViewData["Title"] = "Nouvelle salle"; }
+<h1>Nouvelle salle</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3"><label asp-for="Name" class="form-label"></label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="Capacity" class="form-label"></label><input asp-for="Capacity" class="form-control" type="number" /><span asp-validation-for="Capacity" class="text-danger"></span></div>
+            <div class="mb-3"><label asp-for="Location" class="form-label"></label><input asp-for="Location" class="form-control" /><span asp-validation-for="Location" class="text-danger"></span></div>
+            <div class="mb-3"><input type="submit" value="Créer" class="btn btn-primary" /> <a asp-action="Index" class="btn btn-secondary">Retour</a></div>
+        </form>
+    </div>
+</div>
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

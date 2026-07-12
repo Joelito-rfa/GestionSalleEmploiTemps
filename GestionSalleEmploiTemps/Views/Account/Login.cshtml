@@ -1,0 +1,89 @@
+@model EMIT.Application.DTOs.LoginDto
+@{ Layout = "_LayoutLogin"; ViewData["Title"] = "Connexion"; }
+
+<div class="auth-page gradient-blue">
+    <!-- Decorative floating shapes -->
+    <div class="auth-shapes">
+        <div class="auth-shape"></div>
+        <div class="auth-shape"></div>
+        <div class="auth-shape"></div>
+    </div>
+
+    <!-- Login Card -->
+    <div class="auth-card">
+        <div class="auth-card-header">
+            <img src="~/images/emit-logo.webp" alt="EMIT" class="auth-logo" />
+            <h2 class="auth-card-title" data-i18n="auth.welcome">Bienvenue</h2>
+            <p class="auth-card-subtitle" data-i18n="auth.loginSubtitle">Connectez-vous à votre compte</p>
+        </div>
+
+        <div class="auth-card-body">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <div class="auth-input-group">
+                    <label asp-for="Email" class="auth-label"></label>
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input asp-for="Email" class="form-control" placeholder="email@example.com" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="auth-input-group">
+                    <label asp-for="Password" class="auth-label"></label>
+                    <div class="password-wrapper" style="position: relative;">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input asp-for="Password" class="form-control" id="loginPassword" placeholder="Votre mot de passe" />
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 auth-check">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label" data-i18n="auth.rememberMe">Se souvenir de moi</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="auth-btn">
+                    <span><i class="fa-solid fa-right-to-bracket me-2"></i><span data-i18n="auth.login">Se connecter</span></span>
+                </button>
+
+                <div class="text-center mt-3">
+                    <a asp-action="ForgotPassword" class="auth-link">
+                        <i class="fa-solid fa-key me-1"></i><span data-i18n="auth.forgotPassword">Mot de passe oublié ?</span>
+                    </a>
+                </div>
+
+                <div class="auth-footer-link">
+                    <span data-i18n="auth.noAccount">Pas encore de compte ?</span>
+                    <a asp-action="Register" class="auth-link fw-semibold" data-i18n="auth.register">S'inscrire</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="auth-footer">
+        &copy; 2026 - EMIT - <span data-i18n="footer.rights">Tous droits réservés</span>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+}
+</script>
+
+@section Scripts { @{await Html.RenderPartialAsync("_ValidationScriptsPartial");} }

@@ -1,0 +1,50 @@
+@using EMIT.Infrastructure.Data
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = User.Identity?.IsAuthenticated == true ? await UserManager.GetUserAsync(User) : null;
+}
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ecole de Management et d'Innovation Technologique</title>
+    <link rel="icon" type="image/webp" href="~/favicon.webp" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GestionSalleEmploiTemps.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button id="themeToggle" class="auth-theme-toggle" title="Mode sombre">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <!-- Language Switcher -->
+    <div class="auth-lang-switch">
+        <div class="dropdown">
+            <button class="btn dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fa-solid fa-globe me-1"></i><span id="currentLangLabel">FR</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item language-option" data-lang="fr" href="#"><span class="fi fi-fr me-2"></span>Francais</a></li>
+                <li><a class="dropdown-item language-option" data-lang="mg" href="#"><span class="fi fi-mg me-2"></span>Malagasy</a></li>
+                <li><a class="dropdown-item language-option" data-lang="en" href="#"><span class="fi fi-gb me-2"></span>English</a></li>
+            </ul>
+        </div>
+    </div>
+
+    @RenderBody()
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/i18n.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
