@@ -82,13 +82,13 @@
                         (n.targetLevel ? ' <span class="badge" style="font-size:0.55rem;background:var(--color-bg);color:var(--color-text-secondary);">' + n.targetLevel + '</span>' : '') +
                         '</small></div></div>';
                     a.addEventListener('click', function() {
-                        window.location.href = '/Notifications';
+                        window.location.href = '/Notifications/Index';
                     });
                     list.appendChild(a);
                 });
                 var more = document.createElement('a');
                 more.className = 'list-group-item list-group-item-action text-center small fw-bold';
-                more.href = '/Notifications';
+                more.href = '/Notifications/Index';
                 more.style.cssText = 'color:var(--color-primary);border-left:none;border-right:none;';
                 more.textContent = 'Voir toutes les notifications';
                 list.appendChild(more);

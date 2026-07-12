@@ -350,7 +350,21 @@ main > * {
   height: calc(100vh - var(--header-height));
   overflow-y: auto;
   overflow-x: hidden;
-  transition: margin-left var(--transition-normal);
+  transition: margin-left var(--transition-normal), width var(--transition-normal);
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.main-content.sidebar-collapsed {
+  margin-left: 0;
+  width: 100%;
+}
+
+.header-bar.sidebar-collapsed {
+  left: 0;
+  width: 100%;
 }
 
 .main-content.no-sidebar {
@@ -892,18 +906,40 @@ a.sidebar-footer-link[href*="Profile"]:hover {
 }
 
 .header-hamburger {
-  display: none;
+  display: flex;
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
   border: 1px solid #e5e7eb;
   background: #fff;
-  color: #374151;
-  font-size: 1.1rem;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.header-hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #374151;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.header-hamburger.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.header-hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.header-hamburger.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
 }
 
 .header-hamburger:hover {
@@ -2581,8 +2617,11 @@ footer {
 
 [data-theme="dark"] .header-hamburger {
   background: #1E293B;
-  color: #E2E8F0;
   border-color: #334155;
+}
+
+[data-theme="dark"] .header-hamburger span {
+  background: #E2E8F0;
 }
 
 [data-theme="dark"] .header-hamburger:hover {

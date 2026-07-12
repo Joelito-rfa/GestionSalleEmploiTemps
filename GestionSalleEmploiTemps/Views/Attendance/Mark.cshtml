@@ -24,7 +24,7 @@
     <div class="card shadow">
         <div class="card-body">
             <table class="table mb-0">
-                <thead><tr><th>Étudiant</th><th>Présent</th><th>Notes</th></tr></thead>
+                <thead><tr><th>Étudiant</th><th>Présent</th></tr></thead>
                 <tbody>
                     @for (int i = 0; i < Model.Students.Count; i++)
                     {
@@ -39,7 +39,6 @@
                                     <input asp-for="@Model.Students[i].IsPresent" class="form-check-input" />
                                 </div>
                             </td>
-                            <td><input asp-for="@Model.Students[i].Notes" class="form-control form-control-sm" /></td>
                         </tr>
                     }
                 </tbody>

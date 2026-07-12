@@ -155,7 +155,6 @@ var I18N = {
     "attendance.student": "\u00c9tudiant",
     "attendance.present": "Pr\u00e9sent",
     "attendance.date": "Date",
-    "attendance.notes": "Notes",
     "attendance.noRecords": "Aucune pr\u00e9sence enregistr\u00e9e pour cette s\u00e9ance.",
 
     // Users
@@ -343,7 +342,6 @@ var I18N = {
     "attendance.student": "Mpianara",
     "attendance.present": "Eny",
     "attendance.date": "Daty",
-    "attendance.notes": "Fanamarihana",
     "attendance.noRecords": "Tsy misy fisianana voaray ho azy.",
 
     // Users
@@ -531,7 +529,6 @@ var I18N = {
     "attendance.student": "Student",
     "attendance.present": "Present",
     "attendance.date": "Date",
-    "attendance.notes": "Notes",
     "attendance.noRecords": "No attendance records for this session.",
 
     // Users

@@ -14,6 +14,7 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GestionSalleEmploiTemps.styles.css" asp-append-version="true" />
@@ -28,8 +29,8 @@
     <!-- Language Switcher -->
     <div class="auth-lang-switch">
         <div class="dropdown">
-            <button class="btn dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fa-solid fa-globe me-1"></i><span id="currentLangLabel">FR</span>
+            <button class="btn dropdown-toggle d-flex align-items-center gap-1" data-bs-toggle="dropdown">
+                <span class="fi fi-fr" id="currentLangFlag"></span><span id="currentLangLabel">FR</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow">
                 <li><a class="dropdown-item language-option" data-lang="fr" href="#"><span class="fi fi-fr me-2"></span>Francais</a></li>

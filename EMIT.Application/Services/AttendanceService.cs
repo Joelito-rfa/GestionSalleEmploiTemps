@@ -31,8 +31,7 @@ public class AttendanceService : IAttendanceService
                 StudentId = a.StudentId,
                 StudentName = student?.FullName ?? "N/A",
                 IsPresent = a.IsPresent,
-                Date = a.Date,
-                Notes = a.Notes
+                Date = a.Date
             });
         }
         return dtos.OrderBy(a => a.StudentName);
@@ -48,8 +47,7 @@ public class AttendanceService : IAttendanceService
             StudentId = a.StudentId,
             StudentName = string.Empty,
             IsPresent = a.IsPresent,
-            Date = a.Date,
-            Notes = a.Notes
+            Date = a.Date
         }).OrderByDescending(a => a.Date);
     }
 
@@ -62,7 +60,6 @@ public class AttendanceService : IAttendanceService
         if (record != null)
         {
             record.IsPresent = dto.IsPresent;
-            record.Notes = dto.Notes;
             _unitOfWork.Repository<Attendance>().Update(record);
         }
         else
@@ -72,7 +69,6 @@ public class AttendanceService : IAttendanceService
                 ScheduleId = dto.ScheduleId,
                 StudentId = dto.StudentId,
                 IsPresent = dto.IsPresent,
-                Notes = dto.Notes,
                 Date = DateTime.UtcNow
             };
             await _unitOfWork.Repository<Attendance>().AddAsync(record);
@@ -89,24 +85,23 @@ public class AttendanceService : IAttendanceService
             StudentId = record.StudentId,
             StudentName = student?.FullName ?? "N/A",
             IsPresent = record.IsPresent,
-            Date = record.Date,
-            Notes = record.Notes
+            Date = record.Date
         };
     }
 
     public async Task MarkBulkAsync(BulkAttendanceDto dto)
     {
         var repo = _unitOfWork.Repository<Attendance>();
+        var todayUtc = DateTime.UtcNow.Date;
         foreach (var item in dto.Students)
         {
             var existing = await repo
-                .FindAsync(a => a.ScheduleId == dto.ScheduleId && a.StudentId == item.StudentId && a.Date.Date == dto.Date.Date);
+                .FindAsync(a => a.ScheduleId == dto.ScheduleId && a.StudentId == item.StudentId && a.Date.Date == todayUtc);
 
             var record = existing.FirstOrDefault();
             if (record != null)
             {
                 record.IsPresent = item.IsPresent;
-                record.Notes = item.Notes;
                 repo.Update(record);
             }
             else
@@ -116,8 +111,7 @@ public class AttendanceService : IAttendanceService
                     ScheduleId = dto.ScheduleId,
                     StudentId = item.StudentId,
                     IsPresent = item.IsPresent,
-                    Notes = item.Notes,
-                    Date = dto.Date
+                    Date = DateTime.UtcNow
                 });
             }
         }
@@ -129,5 +123,21 @@ public class AttendanceService : IAttendanceService
     {
         return await _unitOfWork.Repository<Attendance>()
             .AnyAsync(a => a.ScheduleId == scheduleId && a.Date.Date == date.Date);
+    }
+
+    public async Task<IEnumerable<AttendanceDto>> GetTodayAllAsync()
+    {
+        var todayUtc = DateTime.UtcNow.Date;
+        var records = await _unitOfWork.Repository<Attendance>()
+            .FindAsync(a => a.Date.Date == todayUtc);
+        return records.Select(a => new AttendanceDto
+        {
+            Id = a.Id,
+            ScheduleId = a.ScheduleId,
+            StudentId = a.StudentId,
+            StudentName = string.Empty,
+            IsPresent = a.IsPresent,
+            Date = a.Date
+        }).ToList();
     }
 }

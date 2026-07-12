@@ -11,7 +11,7 @@ public class AttendanceDto
     public string StudentName { get; set; } = string.Empty;
     public bool IsPresent { get; set; }
     public DateTime Date { get; set; }
-    public string? Notes { get; set; }
+    public bool IsNotMarked { get; set; }
 }
 
 public class MarkAttendanceDto
@@ -23,8 +23,6 @@ public class MarkAttendanceDto
     public int StudentId { get; set; }
 
     public bool IsPresent { get; set; }
-
-    public string? Notes { get; set; }
 }
 
 public class BulkAttendanceDto
@@ -41,5 +39,4 @@ public class StudentAttendanceItem
 {
     public int StudentId { get; set; }
     public bool IsPresent { get; set; }
-    public string? Notes { get; set; }
 }

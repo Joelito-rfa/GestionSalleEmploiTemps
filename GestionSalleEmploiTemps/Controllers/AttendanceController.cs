@@ -32,21 +32,64 @@ public class AttendanceController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int? scheduleId, int? studentId)
+    public async Task<IActionResult> Index(int? scheduleId, int? studentId, StudentLevel? level)
     {
         if (scheduleId.HasValue)
         {
             var records = await _attendanceService.GetByScheduleAsync(scheduleId.Value);
             var schedule = await _scheduleService.GetByIdAsync(scheduleId.Value);
             ViewBag.Schedule = schedule;
+            ViewBag.Levels = GetLevelSelectList(null);
             return View(records);
         }
         if (studentId.HasValue)
         {
             var records = await _attendanceService.GetByStudentAsync(studentId.Value);
+            ViewBag.Levels = GetLevelSelectList(null);
             return View(records);
         }
-        return View(Enumerable.Empty<AttendanceDto>());
+
+        var students = level.HasValue
+            ? await _studentService.GetByLevelAsync(level.Value)
+            : await _studentService.GetAllAsync();
+
+        var todayRecords = await _attendanceService.GetTodayAllAsync();
+        var todayDict = todayRecords.ToDictionary(r => r.StudentId);
+
+        var result = new List<AttendanceDto>();
+        foreach (var s in students)
+        {
+            if (todayDict.TryGetValue(s.Id, out var record))
+            {
+                record.StudentName = s.FullName;
+                result.Add(record);
+            }
+            else
+            {
+                result.Add(new AttendanceDto
+                {
+                    StudentId = s.Id,
+                    StudentName = s.FullName,
+                    IsPresent = false,
+                    Date = DateTime.UtcNow,
+                    IsNotMarked = true
+                });
+            }
+        }
+
+        ViewBag.SelectedLevel = level;
+        ViewBag.Levels = GetLevelSelectList(level);
+        return View(result);
+    }
+
+    private static List<SelectListItem> GetLevelSelectList(StudentLevel? selected)
+    {
+        return Enum.GetValues<StudentLevel>().Select(l => new SelectListItem
+        {
+            Value = l.ToString(),
+            Text = l.ToString(),
+            Selected = selected.HasValue && selected.Value == l
+        }).ToList();
     }
 
     public async Task<IActionResult> Mark(int scheduleId)
@@ -54,7 +97,7 @@ public class AttendanceController : Controller
         var schedule = await _scheduleService.GetByIdAsync(scheduleId);
         if (schedule == null) return NotFound();
 
-        var students = await _studentService.GetByLevelAsync(schedule.Level);
+        var students = await _studentService.GetAllAsync();
         var existing = await _attendanceService.GetByScheduleAsync(scheduleId);
 
         var bulkDto = new BulkAttendanceDto
@@ -70,8 +113,7 @@ public class AttendanceController : Controller
             bulkDto.Students.Add(new StudentAttendanceItem
             {
                 StudentId = student.Id,
-                IsPresent = existingRecord?.IsPresent ?? false,
-                Notes = existingRecord?.Notes
+                IsPresent = existingRecord?.IsPresent ?? false
             });
             studentNames[student.Id] = student.FullName;
         }
@@ -85,6 +127,7 @@ public class AttendanceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Mark(BulkAttendanceDto dto)
     {
+        dto.Date = DateTime.SpecifyKind(dto.Date, DateTimeKind.Utc);
         await _attendanceService.MarkBulkAsync(dto);
         TempData["Success"] = "Présences enregistrées.";
         _logger.LogInformation("Attendance marked for schedule {ScheduleId}", dto.ScheduleId);

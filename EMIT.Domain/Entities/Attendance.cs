@@ -17,7 +17,4 @@ public class Attendance : BaseEntity
     public bool IsPresent { get; set; }
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
-
-    [StringLength(500)]
-    public string? Notes { get; set; }
 }
