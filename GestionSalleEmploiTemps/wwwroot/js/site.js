@@ -150,8 +150,11 @@
   // ══════════════════════════════════════
   var currentPath = window.location.pathname.toLowerCase();
   document.querySelectorAll('.sidebar-nav-link').forEach(function (link) {
+    link.classList.remove('active');
+  });
+  document.querySelectorAll('.sidebar-nav-link').forEach(function (link) {
     var href = link.getAttribute('href');
-    if (href && currentPath.indexOf(href.toLowerCase()) !== -1) {
+    if (href && currentPath === href.toLowerCase()) {
       link.classList.add('active');
     }
   });
