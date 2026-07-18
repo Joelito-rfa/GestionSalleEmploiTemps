@@ -364,9 +364,8 @@ main > * {
 }
 
 .header-bar.sidebar-collapsed {
-  left: 0;
-  width: 100%;
-  transition: left var(--transition-normal), width var(--transition-normal), box-shadow 0.3s ease;
+  margin-left: 0;
+  transition: margin-left var(--transition-normal), box-shadow 0.3s ease;
 }
 
 .main-content.no-sidebar {
@@ -857,10 +856,11 @@ a.sidebar-footer-link[href*="Profile"]:hover {
   padding: 0 24px;
   position: fixed;
   top: 0;
-  left: var(--sidebar-width);
+  left: 0;
   z-index: 90;
-  width: calc(100% - var(--sidebar-width));
-  transition: left var(--transition-normal), width var(--transition-normal), box-shadow 0.3s ease;
+  width: 100%;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-normal), box-shadow 0.3s ease;
 }
 
 @keyframes headerColorShift {
@@ -871,10 +871,18 @@ a.sidebar-footer-link[href*="Profile"]:hover {
   100% { background-position: 0% 50%; }
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-brand {
@@ -1907,8 +1915,7 @@ footer {
   }
 
   .header-bar {
-    left: 0;
-    width: 100%;
+    margin-left: 0;
     padding: 0 16px;
   }
 
