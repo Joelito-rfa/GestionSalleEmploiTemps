@@ -360,11 +360,13 @@ main > * {
 .main-content.sidebar-collapsed {
   margin-left: 0;
   width: 100%;
+  transition: margin-left var(--transition-normal), width var(--transition-normal);
 }
 
 .header-bar.sidebar-collapsed {
   left: 0;
   width: 100%;
+  transition: left var(--transition-normal), width var(--transition-normal), box-shadow 0.3s ease;
 }
 
 .main-content.no-sidebar {
@@ -858,7 +860,7 @@ a.sidebar-footer-link[href*="Profile"]:hover {
   left: var(--sidebar-width);
   z-index: 90;
   width: calc(100% - var(--sidebar-width));
-  transition: box-shadow 0.3s ease;
+  transition: left var(--transition-normal), width var(--transition-normal), box-shadow 0.3s ease;
 }
 
 @keyframes headerColorShift {
