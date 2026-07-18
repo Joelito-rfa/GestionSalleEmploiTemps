@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,15 +20,43 @@ public class EmailSender : IEmailSender<Data.ApplicationUser>
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
         var useConsole = _configuration.GetValue<bool>("EmailSettings:UseConsole");
+        var smtpHost = _configuration["EmailSettings:SmtpHost"] ?? "";
+        var smtpPort = _configuration.GetValue<int>("EmailSettings:SmtpPort", 587);
+        var smtpUsername = _configuration["EmailSettings:SmtpUsername"] ?? "";
+        var smtpPassword = _configuration["EmailSettings:SmtpPassword"] ?? "";
+        var fromEmail = _configuration["EmailSettings:FromEmail"] ?? "noreply@emit-university.com";
+        var fromName = _configuration["EmailSettings:FromName"] ?? "EMIT University";
 
-        if (useConsole)
+        if (useConsole || string.IsNullOrWhiteSpace(smtpHost))
         {
-            _logger.LogInformation("[EMAIL] À: {Email}", email);
-            _logger.LogInformation("[EMAIL] Sujet: {Subject}", subject);
-            _logger.LogInformation("[EMAIL] Message: {Message}", htmlMessage);
+            _logger.LogInformation("[EMAIL] To: {Email}", email);
+            _logger.LogInformation("[EMAIL] Subject: {Subject}", subject);
+            _logger.LogInformation("[EMAIL] Body: {Message}", htmlMessage);
+            return;
         }
 
-        await Task.CompletedTask;
+        try
+        {
+            using var message = new MailMessage();
+            message.From = new MailAddress(fromEmail, fromName);
+            message.To.Add(email);
+            message.Subject = subject;
+            message.Body = htmlMessage;
+            message.IsBodyHtml = true;
+
+            using var client = new SmtpClient(smtpHost, smtpPort)
+            {
+                Credentials = new NetworkCredential(smtpUsername, smtpPassword),
+                EnableSsl = true
+            };
+
+            await client.SendMailAsync(message);
+            _logger.LogInformation("Email sent to {Email}: {Subject}", email, subject);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email to {Email}: {Subject}", email, subject);
+        }
     }
 
     public async Task SendConfirmationLinkAsync(Data.ApplicationUser user, string email, string confirmationLink)

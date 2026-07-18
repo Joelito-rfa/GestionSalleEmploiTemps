@@ -52,7 +52,6 @@ public static class DependencyInjection
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<INotificationService, NotificationService>();
 
-        services.AddScoped<PdfService>();
         services.AddScoped<SeedService>();
 
         services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();

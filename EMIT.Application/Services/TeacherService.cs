@@ -16,21 +16,27 @@ public class TeacherService : ITeacherService
 
     public async Task<IEnumerable<TeacherDto>> GetAllAsync()
     {
-        var teachers = await _unitOfWork.Repository<Teacher>().GetAllAsync();
-        return teachers.Select(MapToDto);
+        var teachers = await _unitOfWork.Repository<Teacher>().GetAllIncludingAsync(t => t.Schedules);
+        return teachers.Select(t => MapToDto(t));
     }
 
     public async Task<TeacherDto?> GetByIdAsync(int id)
     {
-        var teacher = await _unitOfWork.Repository<Teacher>().GetByIdAsync(id);
+        var teachers = await _unitOfWork.Repository<Teacher>().FindIncludingAsync(t => t.Id == id, t => t.Schedules);
+        var teacher = teachers.FirstOrDefault();
         return teacher == null ? null : MapToDto(teacher);
     }
 
     public async Task<TeacherDto> CreateAsync(CreateTeacherDto dto)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await _unitOfWork.Repository<Teacher>().CountAsync() + 1;
-        var numero = $"PROF-{year}-{count:D3}";
+        var existingNumeros = await _unitOfWork.Repository<Teacher>()
+            .FindAsync(t => t.Numero.StartsWith($"PROF-{year}-"));
+        var maxNum = existingNumeros
+            .Select(t => int.Parse(t.Numero.Split('-')[2]))
+            .DefaultIfEmpty(0)
+            .Max();
+        var numero = $"PROF-{year}-{(maxNum + 1):D3}";
 
         var teacher = new Teacher
         {
@@ -47,7 +53,8 @@ public class TeacherService : ITeacherService
     public async Task<TeacherDto> UpdateAsync(UpdateTeacherDto dto)
     {
         var repo = _unitOfWork.Repository<Teacher>();
-        var teacher = await repo.GetByIdAsync(dto.Id) ?? throw new KeyNotFoundException($"Enseignant avec l'ID {dto.Id} introuvable.");
+        var teachers = await repo.FindIncludingAsync(t => t.Id == dto.Id, t => t.Schedules);
+        var teacher = teachers.FirstOrDefault() ?? throw new KeyNotFoundException($"Enseignant avec l'ID {dto.Id} introuvable.");
         teacher.FullName = dto.FullName;
         teacher.Email = dto.Email;
         teacher.Subject = dto.Subject;
@@ -76,6 +83,7 @@ public class TeacherService : ITeacherService
         Numero = teacher.Numero,
         FullName = teacher.FullName,
         Email = teacher.Email,
-        Subject = teacher.Subject
+        Subject = teacher.Subject,
+        ScheduleCount = teacher.Schedules?.Count ?? 0
     };
 }

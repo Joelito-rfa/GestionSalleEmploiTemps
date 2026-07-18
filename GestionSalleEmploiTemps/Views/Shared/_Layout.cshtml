@@ -11,7 +11,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Ecole de Management et d'Innovation Technologique</title>
     <link rel="icon" type="image/webp" href="~/favicon.webp" />
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/GestionSalleEmploiTemps.styles.css" asp-append-version="true" />
@@ -155,9 +154,6 @@
             <div class="sidebar-footer">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a class="sidebar-footer-link" asp-controller="Profile" asp-action="Index">
-                        <i class="fa-solid fa-user-circle"></i> <span data-i18n="nav.profile">Profil</span>
-                    </a>
                     <form asp-controller="Account" asp-action="Logout" method="post" class="sidebar-footer-form">
                         <button type="submit" class="sidebar-footer-link">
                             <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="nav.logout">Deconnexion</span>

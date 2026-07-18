@@ -360,6 +360,7 @@
   box-shadow:none !important;
 }
 .timetable tbody tr:hover .day-cell{background:linear-gradient(135deg,#eef2ff,#e8ecff)}
+[data-theme="dark"] .timetable tbody tr:hover .day-cell{background:linear-gradient(135deg,rgba(79,123,255,.12),rgba(30,41,59,.8))}
 
 .timetable thead th{
   background:#f9fafb;
@@ -368,10 +369,18 @@
   text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;
   position:sticky;top:0;z-index:2;
 }
+[data-theme="dark"] .timetable thead th{
+  background:#1a2332;
+  border-bottom-color:#1e293b;
+  color:#94a3b8;
+}
 
 /* day separator — top border only on the 4 right columns, never on day-cell */
 .timetable-row.day-separator td:not(.day-cell){
   border-top:1.5px solid #e5e7eb !important;
+}
+[data-theme="dark"] .timetable-row.day-separator td:not(.day-cell){
+  border-top-color:#1e293b !important;
 }
 .timetable-row.day-separator td.day-cell{
   border:none !important;
@@ -387,10 +396,14 @@
   transition:background .3s ease;
   vertical-align:middle !important;
 }
+[data-theme="dark"] .day-cell{
+  background:linear-gradient(135deg,rgba(79,123,255,.08),rgba(30,41,59,.6));
+}
 .day-name{
   font-size:.78rem;font-weight:700;color:#475569;
   letter-spacing:.01em;
 }
+[data-theme="dark"] .day-name{color:#cbd5e1}
 
 /* time cell */
 .time-cell{white-space:nowrap;display:flex;align-items:center;gap:5px}
@@ -403,17 +416,28 @@
   box-shadow:0 1px 3px rgba(67,56,202,.08);
   transition:all .25s ease;
 }
+[data-theme="dark"] .time-badge{
+  background:linear-gradient(135deg,rgba(79,123,255,.18),rgba(99,102,241,.14));
+  color:#93a3f8;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
 .time-badge:hover{
   transform:scale(1.04);
   box-shadow:0 2px 8px rgba(67,56,202,.14);
 }
+[data-theme="dark"] .time-badge:hover{
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
 .time-sep{color:#d1d5db;font-size:.7rem;font-weight:500}
+[data-theme="dark"] .time-sep{color:#475569}
 
 /* detail cells */
 .td-detail{
   font-size:.82rem;color:#4b5563;
 }
+[data-theme="dark"] .td-detail{color:#94a3b8}
 .td-detail i{color:#c0c4cc;margin-right:4px;font-size:.8rem}
+[data-theme="dark"] .td-detail i{color:#475569}
 
 /* subject tag */
 .subject-tag{
@@ -426,9 +450,17 @@
   box-shadow:0 1px 4px rgba(30,64,175,.08);
   transition:all .3s cubic-bezier(.4,0,.2,1);
 }
+[data-theme="dark"] .subject-tag{
+  background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(139,92,246,.14));
+  color:#93a3f8;
+  box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
 .subject-tag:hover{
   transform:translateY(-2px) scale(1.03);
   box-shadow:0 4px 12px rgba(30,64,175,.16);
+}
+[data-theme="dark"] .subject-tag:hover{
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
 }
 
 /* level header gradients */
@@ -444,6 +476,7 @@
   padding:48px 24px;
   color:#9ca3af;
 }
+[data-theme="dark"] .tt-empty{color:#475569}
 .tt-empty i{font-size:2.4rem;opacity:.4}
 .tt-empty p{margin:0;font-size:.9rem}
 .tt-empty-row{padding:28px;text-align:center;color:#c0c4cc;font-size:.85rem;margin:0}

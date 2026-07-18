@@ -39,8 +39,13 @@ public class StudentService : IStudentService
     public async Task<StudentDto> CreateAsync(CreateStudentDto dto)
     {
         var year = DateTime.UtcNow.Year;
-        var count = await _unitOfWork.Repository<Student>().CountAsync() + 1;
-        var matricule = $"STU-{year}-{count:D3}";
+        var existingMatricules = await _unitOfWork.Repository<Student>()
+            .FindAsync(s => s.Matricule.StartsWith($"STU-{year}-"));
+        var maxNum = existingMatricules
+            .Select(s => int.Parse(s.Matricule.Split('-')[2]))
+            .DefaultIfEmpty(0)
+            .Max();
+        var matricule = $"STU-{year}-{(maxNum + 1):D3}";
 
         var student = new Student
         {

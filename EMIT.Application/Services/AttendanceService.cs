@@ -20,32 +20,34 @@ public class AttendanceService : IAttendanceService
     public async Task<IEnumerable<AttendanceDto>> GetByScheduleAsync(int scheduleId)
     {
         var records = await _unitOfWork.Repository<Attendance>().FindAsync(a => a.ScheduleId == scheduleId);
-        var dtos = new List<AttendanceDto>();
-        foreach (var a in records)
+        var studentIds = records.Select(a => a.StudentId).Distinct().ToList();
+        var students = new Dictionary<int, Student>();
+        foreach (var id in studentIds)
         {
-            var student = await _unitOfWork.Repository<Student>().GetByIdAsync(a.StudentId);
-            dtos.Add(new AttendanceDto
-            {
-                Id = a.Id,
-                ScheduleId = a.ScheduleId,
-                StudentId = a.StudentId,
-                StudentName = student?.FullName ?? "N/A",
-                IsPresent = a.IsPresent,
-                Date = a.Date
-            });
+            var student = await _unitOfWork.Repository<Student>().GetByIdAsync(id);
+            if (student != null) students[id] = student;
         }
-        return dtos.OrderBy(a => a.StudentName);
-    }
-
-    public async Task<IEnumerable<AttendanceDto>> GetByStudentAsync(int studentId)
-    {
-        var records = await _unitOfWork.Repository<Attendance>().FindAsync(a => a.StudentId == studentId);
         return records.Select(a => new AttendanceDto
         {
             Id = a.Id,
             ScheduleId = a.ScheduleId,
             StudentId = a.StudentId,
-            StudentName = string.Empty,
+            StudentName = students.TryGetValue(a.StudentId, out var s) ? s.FullName : "N/A",
+            IsPresent = a.IsPresent,
+            Date = a.Date
+        }).OrderBy(a => a.StudentName);
+    }
+
+    public async Task<IEnumerable<AttendanceDto>> GetByStudentAsync(int studentId)
+    {
+        var records = await _unitOfWork.Repository<Attendance>().FindAsync(a => a.StudentId == studentId);
+        var student = await _unitOfWork.Repository<Student>().GetByIdAsync(studentId);
+        return records.Select(a => new AttendanceDto
+        {
+            Id = a.Id,
+            ScheduleId = a.ScheduleId,
+            StudentId = a.StudentId,
+            StudentName = student?.FullName ?? "N/A",
             IsPresent = a.IsPresent,
             Date = a.Date
         }).OrderByDescending(a => a.Date);
@@ -130,12 +132,19 @@ public class AttendanceService : IAttendanceService
         var todayUtc = DateTime.UtcNow.Date;
         var records = await _unitOfWork.Repository<Attendance>()
             .FindAsync(a => a.Date.Date == todayUtc);
+        var studentIds = records.Select(a => a.StudentId).Distinct().ToList();
+        var students = new Dictionary<int, Student>();
+        foreach (var id in studentIds)
+        {
+            var student = await _unitOfWork.Repository<Student>().GetByIdAsync(id);
+            if (student != null) students[id] = student;
+        }
         return records.Select(a => new AttendanceDto
         {
             Id = a.Id,
             ScheduleId = a.ScheduleId,
             StudentId = a.StudentId,
-            StudentName = string.Empty,
+            StudentName = students.TryGetValue(a.StudentId, out var s) ? s.FullName : "N/A",
             IsPresent = a.IsPresent,
             Date = a.Date
         }).ToList();

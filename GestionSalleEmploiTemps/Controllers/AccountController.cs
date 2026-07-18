@@ -63,7 +63,7 @@ public class AccountController : Controller
                     await _context.SaveChangesAsync();
                 }
                 _logger.LogInformation("User {Email} logged in.", model.Email);
-                return RedirectToLocal(returnUrl);
+                return await RedirectToLocal(returnUrl);
             }
             if (result.IsLockedOut)
             {
@@ -303,15 +303,15 @@ public class AccountController : Controller
         return View();
     }
 
-    private IActionResult RedirectToLocal(string? returnUrl)
+    private async Task<IActionResult> RedirectToLocal(string? returnUrl)
     {
         if (Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        var user = _userManager.GetUserAsync(User).Result;
+        var user = await _userManager.GetUserAsync(User);
         if (user != null)
         {
-            if (_userManager.IsInRoleAsync(user, "Student").Result)
+            if (await _userManager.IsInRoleAsync(user, "Student"))
                 return RedirectToAction(nameof(HomeController.Timetable), "Home");
         }
 

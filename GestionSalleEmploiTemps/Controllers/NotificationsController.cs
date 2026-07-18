@@ -5,6 +5,7 @@ using EMIT.Application.Interfaces;
 using EMIT.Infrastructure.Data;
 using EMIT.Domain.Enums;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestionSalleEmploiTemps.Controllers;
 
@@ -13,16 +14,37 @@ public class NotificationsController : Controller
 {
     private readonly INotificationService _notificationService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<NotificationsController> _logger;
 
     public NotificationsController(
         INotificationService notificationService,
         UserManager<ApplicationUser> userManager,
+        ApplicationDbContext context,
         ILogger<NotificationsController> logger)
     {
         _notificationService = notificationService;
         _userManager = userManager;
+        _context = context;
         _logger = logger;
+    }
+
+    private async Task<(string role, string? level)> GetUserInfoAsync()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return ("Student", null);
+
+        var role = User.IsInRole("Admin") ? "Admin" :
+                   User.IsInRole("Teacher") ? "Teacher" : "Student";
+
+        string? level = null;
+        if (role == "Student")
+        {
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == user.Id);
+            level = student?.Level.ToString();
+        }
+
+        return (role, level);
     }
 
     public async Task<IActionResult> Index()
@@ -30,15 +52,7 @@ public class NotificationsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return RedirectToAction("Login", "Account");
 
-        var role = User.IsInRole("Admin") ? "Admin" :
-                   User.IsInRole("Teacher") ? "Teacher" : "Student";
-
-        string? userLevel = null;
-        if (role == "Student")
-        {
-            userLevel = user.Role;
-        }
-
+        var (role, userLevel) = await GetUserInfoAsync();
         var notifications = await _notificationService.GetAllForUserAsync(user.Id, role, userLevel);
         return View(notifications);
     }
@@ -60,11 +74,7 @@ public class NotificationsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return RedirectToAction("Login", "Account");
 
-        var role = User.IsInRole("Admin") ? "Admin" :
-                   User.IsInRole("Teacher") ? "Teacher" : "Student";
-        string? userLevel = null;
-        if (role == "Student") userLevel = user.Role;
-
+        var (role, userLevel) = await GetUserInfoAsync();
         await _notificationService.MarkAllAsReadAsync(user.Id, role, userLevel);
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -89,11 +99,7 @@ public class NotificationsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return RedirectToAction("Login", "Account");
 
-        var role = User.IsInRole("Admin") ? "Admin" :
-                   User.IsInRole("Teacher") ? "Teacher" : "Student";
-        string? userLevel = null;
-        if (role == "Student") userLevel = user.Role;
-
+        var (role, userLevel) = await GetUserInfoAsync();
         await _notificationService.DeleteAllForUserAsync(user.Id, role, userLevel);
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -107,12 +113,7 @@ public class NotificationsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Json(0);
 
-        var role = User.IsInRole("Admin") ? "Admin" :
-                   User.IsInRole("Teacher") ? "Teacher" : "Student";
-
-        string? userLevel = null;
-        if (role == "Student") userLevel = user.Role;
-
+        var (role, userLevel) = await GetUserInfoAsync();
         var count = await _notificationService.GetUnreadCountAsync(user.Id, role, userLevel);
         return Json(count);
     }
@@ -123,12 +124,7 @@ public class NotificationsController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Json(Array.Empty<object>());
 
-        var role = User.IsInRole("Admin") ? "Admin" :
-                   User.IsInRole("Teacher") ? "Teacher" : "Student";
-
-        string? userLevel = null;
-        if (role == "Student") userLevel = user.Role;
-
+        var (role, userLevel) = await GetUserInfoAsync();
         var notifications = await _notificationService.GetAllForUserAsync(user.Id, role, userLevel);
         var recent = notifications.Take(5).Select(n => new
         {

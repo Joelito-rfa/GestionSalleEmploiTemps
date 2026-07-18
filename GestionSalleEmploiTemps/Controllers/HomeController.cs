@@ -1,23 +1,22 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EMIT.Application.Interfaces;
 using EMIT.Domain.Enums;
 using EMIT.Application.DTOs;
-using EMIT.Infrastructure.Services;
 using GestionSalleEmploiTemps.Models;
 
 namespace GestionSalleEmploiTemps.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
     private readonly ITimetableService _timetableService;
-    private readonly PdfService _pdfService;
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(ITimetableService timetableService, PdfService pdfService, ILogger<HomeController> logger)
+    public HomeController(ITimetableService timetableService, ILogger<HomeController> logger)
     {
         _timetableService = timetableService;
-        _pdfService = pdfService;
         _logger = logger;
     }
 
