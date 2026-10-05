@@ -49,8 +49,19 @@ app.MapControllerRoute(
 
 using (var scope = app.Services.CreateScope())
 {
-    var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
-    await seedService.SeedAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
+        await seedService.SeedAsync();
+        logger.LogInformation("Database migration + seed OK");
+    }
+    catch (Exception ex)
+    {
+        // Ne crash pas le container : Render affichera l'erreur dans les logs
+        // au lieu d'un segfault 139. L'app demarre, la DB pourra etre fixee via env vars.
+        logger.LogError(ex, "Seed failed (check ConnectionStrings__DefaultConnection, sslmode=require). App starts without seed.");
+    }
 }
 
 app.Run();
