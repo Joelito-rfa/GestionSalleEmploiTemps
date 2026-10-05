@@ -1,5 +1,5 @@
-# Build stage (Debian bookworm = glibc stable, compatible Render)
-FROM mcr.microsoft.com/dotnet/sdk:10.0-bookworm-slim AS build
+# Build stage (Ubuntu noble = OS supporte par .NET 10, bookworm n'existe plus en 10.x)
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 WORKDIR /src
 
 # Copie des csproj + restore (cache Docker optimal)
@@ -15,7 +15,7 @@ WORKDIR /src/GestionSalleEmploiTemps
 RUN dotnet publish GestionSalleEmploiTemps.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-bookworm-slim AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
