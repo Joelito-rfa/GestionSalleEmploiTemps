@@ -32,8 +32,11 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login(string? returnUrl = null)
+    public async Task<IActionResult> Login(string? returnUrl = null)
     {
+        // Deja connecte -> pas besoin de revoir le formulaire
+        if (User.Identity?.IsAuthenticated == true)
+            return await RedirectToLocal(returnUrl);
         ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
@@ -52,15 +55,25 @@ public class AccountController : Controller
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user != null)
                 {
-                    var session = new UserSession
+                    try
                     {
-                        UserId = user.Id,
-                        LoginAt = DateTime.UtcNow,
-                        LastActivityAt = DateTime.UtcNow,
-                        IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
-                    };
-                    _context.UserSessions.Add(session);
-                    await _context.SaveChangesAsync();
+                        var session = new UserSession
+                        {
+                            UserId = user.Id,
+                            LoginAt = DateTime.UtcNow,
+                            LastActivityAt = DateTime.UtcNow,
+                            IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                        };
+                        _context.UserSessions.Add(session);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Le tracking de session ne doit jamais bloquer la connexion
+                        _logger.LogWarning(ex, "UserSession write failed for {Email}. Login continues.", model.Email);
+                    }
+                    _logger.LogInformation("User {Email} logged in.", model.Email);
+                    return await RedirectToLocal(returnUrl, user);
                 }
                 _logger.LogInformation("User {Email} logged in.", model.Email);
                 return await RedirectToLocal(returnUrl);
@@ -303,12 +316,14 @@ public class AccountController : Controller
         return View();
     }
 
-    private async Task<IActionResult> RedirectToLocal(string? returnUrl)
+    private async Task<IActionResult> RedirectToLocal(string? returnUrl, ApplicationUser? knownUser = null)
     {
         if (Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        var user = await _userManager.GetUserAsync(User);
+        // Apres PasswordSignInAsync, HttpContext.User n'est pas encore rafraichi
+        // sur la requete courante : on utilise l'utilisateur connu par email.
+        var user = knownUser ?? await _userManager.GetUserAsync(User);
         if (user != null)
         {
             if (await _userManager.IsInRoleAsync(user, "Student"))

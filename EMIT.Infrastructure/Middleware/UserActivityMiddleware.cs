@@ -21,26 +21,33 @@ public class UserActivityMiddleware
 
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
-            var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
-
-            var userId = userManager.GetUserId(context.User);
-            if (userId != null)
+            try
             {
-                var session = await dbContext.UserSessions
-                    .Where(s => s.UserId == userId && s.IsActive)
-                    .OrderByDescending(s => s.LoginAt)
-                    .FirstOrDefaultAsync();
+                var userManager = context.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                var dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
-                if (session != null)
+                var userId = userManager.GetUserId(context.User);
+                if (userId != null)
                 {
-                    var timeSinceLastActivity = DateTime.UtcNow - session.LastActivityAt;
-                    if (timeSinceLastActivity.TotalMinutes >= 1)
+                    var session = await dbContext.UserSessions
+                        .Where(s => s.UserId == userId && s.IsActive)
+                        .OrderByDescending(s => s.LoginAt)
+                        .FirstOrDefaultAsync();
+
+                    if (session != null)
                     {
-                        session.LastActivityAt = DateTime.UtcNow;
-                        await dbContext.SaveChangesAsync();
+                        var timeSinceLastActivity = DateTime.UtcNow - session.LastActivityAt;
+                        if (timeSinceLastActivity.TotalMinutes >= 1)
+                        {
+                            session.LastActivityAt = DateTime.UtcNow;
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
                 }
+            }
+            catch
+            {
+                // Le tracking d'activite ne doit jamais casser une reponse
             }
         }
     }
